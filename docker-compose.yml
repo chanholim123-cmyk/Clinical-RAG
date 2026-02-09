@@ -1,0 +1,30 @@
+version: "3.9"
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - GCP_PROJECT_ID=${GCP_PROJECT_ID:-your-project-id}
+      - GCP_LOCATION=${GCP_LOCATION:-us-central1}
+      - MODEL_NAME=${MODEL_NAME:-gemini-1.5-pro}
+      - EMBEDDING_MODEL=${EMBEDDING_MODEL:-textembedding-gecko@003}
+      - VECTORSTORE_PATH=/app/data/vectorstore
+      - PDF_PATH=/app/data/ng12.pdf
+      - PATIENTS_PATH=/app/patients.json
+      - GOOGLE_APPLICATION_CREDENTIALS=/app/credentials/service-account.json
+    volumes:
+      # Mount GCP credentials (place your service-account.json in ./credentials/)
+      - ./credentials:/app/credentials:ro
+      # Persist the vector store across restarts
+      - vectorstore_data:/app/data/vectorstore
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  vectorstore_data:

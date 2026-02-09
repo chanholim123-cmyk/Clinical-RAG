@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NG12 Cancer Risk Assessor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary-blue: #1e40af;
+            --primary-blue-light: #3b82f6;
+            --primary-blue-lighter: #dbeafe;
+            --muted-blue: #6b7280;
+            --muted-green: #059669;
+            --muted-green-light: #d1fae5;
+            --danger-red: #dc2626;
+            --danger-red-light: #fee2e2;
+            --warning-orange: #f97316;
+            --warning-orange-light: #fed7aa;
+            --neutral-gray: #f3f4f6;
+            --neutral-gray-dark: #e5e7eb;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background-color: #ffffff;
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, var(--primary-blue) 0%, var(--primary-blue-light) 100%);
+            color: white;
+            padding: 30px 20px;
+            margin-bottom: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        /* Tab Navigation */
+        .tab-navigation {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 30px;
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .tab-button {
+            padding: 12px 24px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            border-bottom: 3px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.3s ease;
+        }
+
+        .tab-button:hover {
+            color: var(--primary-blue);
+        }
+
+        .tab-button.active {
+            color: var(--primary-blue);
+            border-bottom-color: var(--primary-blue);
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(5px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Form Styles */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            font-size: 14px;
+            color: var(--text-primary);
+        }
+
+        .form-group select,
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+        }
+
+        .form-group select:focus,
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+
+        .form-group select {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 20px;
+            padding-right: 40px;
+        }
+
+        /* Button Styles */
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background-color: var(--primary-blue);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background-color: #1e3a8a;
+            box-shadow: 0 4px 12px rgba(30, 64, 175, 0.3);
+        }
+
+        .btn-primary:disabled {
+            background-color: #9ca3af;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .btn-secondary {
+            background-color: var(--neutral-gray);
+            color: var(--text-primary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background-color: var(--neutral-gray-dark);
+        }
+
+        .btn-danger {
+            background-color: var(--danger-red);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background-color: #b91c1c;
+        }
+
+        /* Risk Assessment Tab */
+        .assessment-section {
+            max-width: 700px;
+        }
+
+        .result-container {
+            margin-top: 30px;
+            padding: 20px;
+            background-color: var(--neutral-gray);
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        .patient-card {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .patient-card h3 {
+            font-size: 18px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .patient-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            font-size: 14px;
+        }
+
+        .patient-info-item {
+            padding: 10px;
+            background-color: var(--neutral-gray);
+            border-radius: 6px;
+        }
+
+        .patient-info-label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .risk-badge {
+            display: inline-block;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .risk-badge.urgent {
+            background-color: var(--danger-red-light);
+            color: var(--danger-red);
+        }
+
+        .risk-badge.consider {
+            background-color: var(--warning-orange-light);
+            color: var(--warning-orange);
+        }
+
+        .risk-badge.no-criteria {
+            background-color: var(--muted-green-light);
+            color: var(--muted-green);
+        }
+
+        .assessment-summary {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .assessment-summary h3 {
+            font-size: 16px;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .assessment-summary p {
+            color: var(--text-secondary);
+            line-height: 1.7;
+            margin-bottom: 15px;
+        }
+
+        .reasoning-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .reasoning-list li {
+            padding: 10px 0;
+            padding-left: 24px;
+            position: relative;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .reasoning-list li:before {
+            content: "•";
+            position: absolute;
+            left: 0;
+            color: var(--primary-blue);
+            font-weight: bold;
+        }
+
+        .citations-section {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            margin-bottom: 20px;
+        }
+
+        .citations-section h3 {
+            font-size: 16px;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+        }
+
+        .citation-item {
+            padding: 12px;
+            background-color: var(--primary-blue-lighter);
+            border-left: 3px solid var(--primary-blue);
+            border-radius: 4px;
+            margin-bottom: 10px;
+            font-size: 13px;
+        }
+
+        .citation-section {
+            font-weight: 500;
+            color: var(--primary-blue);
+            margin-bottom: 4px;
+        }
+
+        .citation-page {
+            color: var(--text-secondary);
+            font-size: 12px;
+        }
+
+        .disclaimer {
+            background: var(--danger-red-light);
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid var(--danger-red);
+            font-size: 13px;
+            color: var(--danger-red);
+            line-height: 1.6;
+        }
+
+        /* Chat Tab */
+        .chat-container {
+            display: flex;
+            flex-direction: column;
+            height: 600px;
+            max-width: 700px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            overflow: hidden;
+        }
+
+        .chat-header {
+            padding: 15px 20px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: var(--neutral-gray);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chat-session-id {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+            word-break: break-all;
+        }
+
+        .chat-session-label {
+            font-weight: 500;
+            margin-bottom: 4px;
+            color: var(--text-primary);
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .message {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.assistant {
+            justify-content: flex-start;
+        }
+
+        .message-content {
+            max-width: 80%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .message.user .message-content {
+            background-color: var(--primary-blue);
+            color: white;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message.assistant .message-content {
+            background-color: var(--neutral-gray);
+            color: var(--text-primary);
+            border-bottom-left-radius: 2px;
+        }
+
+        .message-timestamp {
+            font-size: 11px;
+            color: var(--text-secondary);
+            margin-top: 4px;
+            padding: 0 5px;
+        }
+
+        .message-citations {
+            font-size: 12px;
+            color: var(--text-secondary);
+            margin-top: 8px;
+            padding: 0 5px;
+        }
+
+        .citation-badge {
+            display: inline-block;
+            background-color: var(--primary-blue-lighter);
+            color: var(--primary-blue);
+            padding: 2px 6px;
+            border-radius: 3px;
+            margin-right: 4px;
+            margin-top: 4px;
+        }
+
+        .chat-footer {
+            padding: 15px 20px;
+            border-top: 1px solid var(--border-color);
+            background-color: var(--neutral-gray);
+        }
+
+        .chat-input-group {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input-group input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+
+        .chat-input-group input:focus {
+            outline: none;
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(30, 64, 175, 0.1);
+        }
+
+        .chat-controls {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        /* Alert Styles */
+        .alert {
+            padding: 12px 15px;
+            border-radius: 6px;
+            margin-bottom: 15px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        .alert-error {
+            background-color: var(--danger-red-light);
+            color: var(--danger-red);
+            border-left: 4px solid var(--danger-red);
+        }
+
+        .alert-success {
+            background-color: var(--muted-green-light);
+            color: var(--muted-green);
+            border-left: 4px solid var(--muted-green);
+        }
+
+        .alert-info {
+            background-color: var(--primary-blue-lighter);
+            color: var(--primary-blue);
+            border-left: 4px solid var(--primary-blue);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 15px;
+            }
+
+            .header {
+                padding: 20px 15px;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .tab-button {
+                padding: 10px 16px;
+            }
+
+            .chat-container {
+                height: 500px;
+            }
+
+            .message-content {
+                max-width: 90%;
+            }
+
+            .patient-info {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>NG12 Cancer Risk Assessor</h1>
+            <p>Clinical Decision Support Agent using NICE NG12 Guidelines</p>
+        </div>
+
+        <!-- Tab Navigation -->
+        <div class="tab-navigation">
+            <button class="tab-button active" data-tab="assessor">Risk Assessor</button>
+            <button class="tab-button" data-tab="chat">Chat with NG12</button>
+        </div>
+
+        <!-- Tab 1: Risk Assessor -->
+        <div id="assessor" class="tab-content active">
+            <div class="assessment-section">
+                <div class="form-group">
+                    <label for="patient-select">Select Patient</label>
+                    <select id="patient-select">
+                        <option value="">-- Choose a patient --</option>
+                    </select>
+                </div>
+
+                <button class="btn btn-primary" id="assess-btn" onclick="performAssessment()">
+                    <span>Assess Risk</span>
+                </button>
+
+                <div id="assessment-error" class="alert alert-error" style="display: none; margin-top: 15px;"></div>
+
+                <div id="assessment-result" style="display: none; margin-top: 20px;">
+                    <!-- Patient Card -->
+                    <div class="patient-card">
+                        <h3>Patient Summary</h3>
+                        <div class="patient-info">
+                            <div class="patient-info-item">
+                                <div class="patient-info-label">Patient ID</div>
+                                <div id="result-patient-id"></div>
+                            </div>
+                            <div class="patient-info-item">
+                                <div class="patient-info-label">Name</div>
+                                <div id="result-patient-name"></div>
+                            </div>
+                            <div class="patient-info-item">
+                                <div class="patient-info-label">Assessment Date</div>
+                                <div id="result-assessment-date"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Risk Assessment -->
+                    <div class="assessment-summary">
+                        <h3>Risk Assessment</h3>
+                        <div style="margin-bottom: 15px;">
+                            <span class="risk-badge" id="risk-badge"></span>
+                        </div>
+                        <p id="result-summary"></p>
+                    </div>
+
+                    <!-- Reasoning -->
+                    <div class="assessment-summary">
+                        <h3>Clinical Reasoning</h3>
+                        <ul class="reasoning-list" id="result-reasoning"></ul>
+                    </div>
+
+                    <!-- Citations -->
+                    <div class="citations-section">
+                        <h3>Citations from NICE NG12</h3>
+                        <div id="result-citations"></div>
+                    </div>
+
+                    <!-- Disclaimer -->
+                    <div class="disclaimer" id="result-disclaimer"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2: Chat with NG12 -->
+        <div id="chat" class="tab-content">
+            <div style="max-width: 700px;">
+                <div class="chat-controls">
+                    <div style="flex: 1;">
+                        <div class="chat-session-label">Session ID</div>
+                        <div class="chat-session-id" id="session-id-display"></div>
+                    </div>
+                    <button class="btn btn-secondary" onclick="startNewSession()">New Session</button>
+                </div>
+
+                <div class="chat-container">
+                    <div class="chat-header">
+                        <span>NG12 Guideline Assistant</span>
+                    </div>
+                    <div class="chat-messages" id="chat-messages">
+                        <div class="empty-state">
+                            <div class="empty-state-icon">💬</div>
+                            <h3>Start a Conversation</h3>
+                            <p>Ask questions about NICE NG12 cancer risk assessment guidelines</p>
+                        </div>
+                    </div>
+                    <div class="chat-footer">
+                        <div class="chat-input-group">
+                            <input type="text" id="chat-input" placeholder="Ask a question about NG12..." onkeypress="handleChatKeypress(event)">
+                            <button class="btn btn-primary" onclick="sendChatMessage()">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==================== Configuration ====================
+        const API_BASE_URL = window.location.origin;
+        let currentSessionId = generateUUID();
+        let isLoadingAssessment = false;
+        let isLoadingChat = false;
+
+        // ==================== Utility Functions ====================
+        function generateUUID() {
+            return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+        }
+
+        function formatDate(dateString) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+            return new Date(dateString).toLocaleDateString(undefined, options);
+        }
+
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.textContent = message;
+                element.style.display = 'block';
+            }
+        }
+
+        function hideError(elementId) {
+            const element = document.getElementById(elementId);
+            if (element) {
+                element.style.display = 'none';
+            }
+        }
+
+        // ==================== Tab Navigation ====================
+        document.querySelectorAll('.tab-button').forEach(button => {
+            button.addEventListener('click', () => {
+                const tabName = button.getAttribute('data-tab');
+
+                document.querySelectorAll('.tab-content').forEach(tab => {
+                    tab.classList.remove('active');
+                });
+
+                document.querySelectorAll('.tab-button').forEach(btn => {
+                    btn.classList.remove('active');
+                });
+
+                document.getElementById(tabName).classList.add('active');
+                button.classList.add('active');
+            });
+        });
+
+        // ==================== Risk Assessor Tab ====================
+        async function loadPatients() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/patients`);
+                if (!response.ok) throw new Error('Failed to load patients');
+
+                const patients = await response.json();
+                const select = document.getElementById('patient-select');
+
+                patients.forEach(patient => {
+                    const option = document.createElement('option');
+                    option.value = patient.patient_id;
+                    option.textContent = `${patient.name} (${patient.patient_id})`;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Error loading patients:', error);
+                showError('assessment-error', 'Failed to load patient list. Please refresh the page.');
+            }
+        }
+
+        async function performAssessment() {
+            const patientSelect = document.getElementById('patient-select');
+            const patientId = patientSelect.value.trim();
+
+            if (!patientId) {
+                showError('assessment-error', 'Please select a patient');
+                return;
+            }
+
+            const assessBtn = document.getElementById('assess-btn');
+            isLoadingAssessment = true;
+            assessBtn.disabled = true;
+            assessBtn.innerHTML = '<span class="spinner"></span> Assessing...';
+            hideError('assessment-error');
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/assess`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ patient_id: patientId })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.detail || 'Assessment failed');
+                }
+
+                const result = await response.json();
+                displayAssessmentResult(result);
+
+            } catch (error) {
+                showError('assessment-error', `Assessment failed: ${error.message}`);
+            } finally {
+                isLoadingAssessment = false;
+                assessBtn.disabled = false;
+                assessBtn.innerHTML = '<span>Assess Risk</span>';
+            }
+        }
+
+        function displayAssessmentResult(result) {
+            const resultDiv = document.getElementById('assessment-result');
+
+            document.getElementById('result-patient-id').textContent = result.patient_id;
+            document.getElementById('result-patient-name').textContent = result.patient_name;
+            document.getElementById('result-assessment-date').textContent = formatDate(result.assessment_date);
+
+            const badge = document.getElementById('risk-badge');
+            badge.textContent = result.risk_level.toUpperCase().replace(/_/g, ' ');
+            badge.className = `risk-badge ${result.risk_level === 'urgent' ? 'urgent' : result.risk_level === 'consider' ? 'consider' : 'no-criteria'}`;
+
+            document.getElementById('result-summary').textContent = result.summary;
+
+            const reasoningList = document.getElementById('result-reasoning');
+            reasoningList.innerHTML = '';
+            result.reasoning.forEach(reason => {
+                const li = document.createElement('li');
+                li.textContent = reason;
+                reasoningList.appendChild(li);
+            });
+
+            const citationsDiv = document.getElementById('result-citations');
+            citationsDiv.innerHTML = '';
+            result.citations.forEach(citation => {
+                const citationDiv = document.createElement('div');
+                citationDiv.className = 'citation-item';
+                citationDiv.innerHTML = `
+                    <div class="citation-section">${citation.section}</div>
+                    <div class="citation-page">Page ${citation.page}</div>
+                `;
+                citationsDiv.appendChild(citationDiv);
+            });
+
+            document.getElementById('result-disclaimer').textContent = result.disclaimer;
+
+            resultDiv.style.display = 'block';
+            resultDiv.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ==================== Chat Tab ====================
+        function startNewSession() {
+            currentSessionId = generateUUID();
+            document.getElementById('chat-messages').innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">💬</div>
+                    <h3>Start a Conversation</h3>
+                    <p>Ask questions about NICE NG12 cancer risk assessment guidelines</p>
+                </div>
+            `;
+            document.getElementById('chat-input').value = '';
+            updateSessionDisplay();
+        }
+
+        function updateSessionDisplay() {
+            document.getElementById('session-id-display').textContent = currentSessionId;
+        }
+
+        async function sendChatMessage() {
+            const input = document.getElementById('chat-input');
+            const message = input.value.trim();
+
+            if (!message) return;
+
+            const messagesDiv = document.getElementById('chat-messages');
+            const isEmpty = messagesDiv.querySelector('.empty-state');
+            if (isEmpty) isEmpty.remove();
+
+            isLoadingChat = true;
+            const sendBtn = event.target;
+            sendBtn.disabled = true;
+
+            try {
+                addMessageToChat('user', message, null);
+                input.value = '';
+
+                const response = await fetch(`${API_BASE_URL}/chat`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        session_id: currentSessionId,
+                        message: message,
+                        top_k: 5
+                    })
+                });
+
+                if (!response.ok) throw new Error('Chat request failed');
+
+                const data = await response.json();
+                addMessageToChat('assistant', data.answer, data.citations);
+
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+
+            } catch (error) {
+                console.error('Chat error:', error);
+                addMessageToChat('assistant', 'Sorry, I encountered an error processing your message. Please try again.', null);
+            } finally {
+                isLoadingChat = false;
+                sendBtn.disabled = false;
+            }
+        }
+
+        function addMessageToChat(role, content, citations) {
+            const messagesDiv = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+
+            const contentDiv = document.createElement('div');
+            contentDiv.className = 'message-content';
+            contentDiv.textContent = content;
+
+            messageDiv.appendChild(contentDiv);
+
+            const timestamp = new Date().toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+            const timestampDiv = document.createElement('div');
+            timestampDiv.className = 'message-timestamp';
+            timestampDiv.textContent = timestamp;
+            messageDiv.appendChild(timestampDiv);
+
+            if (citations && citations.length > 0) {
+                const citationsDiv = document.createElement('div');
+                citationsDiv.className = 'message-citations';
+                const citationBadges = citations.map(c => `<span class="citation-badge">${c.section.substring(0, 20)}...</span>`).join('');
+                citationsDiv.innerHTML = `Citations: ${citationBadges}`;
+                messageDiv.appendChild(citationsDiv);
+            }
+
+            messagesDiv.appendChild(messageDiv);
+        }
+
+        function handleChatKeypress(event) {
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendChatMessage();
+            }
+        }
+
+        // ==================== Initialization ====================
+        document.addEventListener('DOMContentLoaded', () => {
+            loadPatients();
+            updateSessionDisplay();
+        });
+    </script>
+</body>
+</html>
